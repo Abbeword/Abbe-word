@@ -3,51 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABBE WORLD 🌍</title>
+    <title>ABBE WORLD ULTIMATE</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
-        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        #start-button { padding: 25px 50px; font-size: 20px; background: gold; border: 5px solid white; border-radius: 20px; font-weight: bold; }
-        #ui-text { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-weight: bold; pointer-events: none; text-shadow: 2px 2px 5px #000; display: none; }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; }
+        #loading-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #87CEEB; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 9999; 
+        }
+        #btn-start { 
+            padding: 25px 50px; background: gold; border: 5px solid white; 
+            border-radius: 20px; font-size: 20px; font-weight: bold; 
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay">
-        <button id="start-button">اضغط للبدء في ABBE WORLD 🚀</button>
+    <div id="loading-screen">
+        <div id="btn-start">🚀 دخول عالم ABBE 🚀</div>
+        <p style="color: white; margin-top: 10px;">اضغط للتشغيل الفوري</p>
     </div>
 
-    <div id="ui-text">عالم ABBE: المس الشاشة لتتحرك</div>
-
-    <!-- تحميل المكتبات -->
+    <!-- تحميل مكتبة الرسم أولاً -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- تحميل مكتبة الأونلاين ثانياً -->
     <script src="https://unpkg.com/playroomkit/multiplayer.js"></script>
 
     <script>
-        const startBtn = document.getElementById("start-button");
-        
+        const startBtn = document.getElementById("btn-start");
+
         startBtn.onclick = function() {
-            document.getElementById("start-overlay").style.display = "none";
-            document.getElementById("ui-text").style.display = "block";
-            initGame();
+            // 1. إخفاء الشاشة فوراً
+            document.getElementById("loading-screen").style.display = "none";
+            
+            // 2. تشغيل المحرك 3D فوراً (بدون انتظار السيرفر)
+            try {
+                startEngine();
+            } catch(e) {
+                alert("خطأ في المحرك: " + e);
+            }
         };
 
-        function initGame() {
-            // 1. إعداد المحرك 3D
+        function startEngine() {
+            // إعداد المشهد
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.view);
+            document.body.appendChild(renderer.domElement);
 
             // إضاءة
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
             const sun = new THREE.DirectionalLight(0xffffff, 1);
-            sun.position.set(10, 20, 10);
+            sun.position.set(5, 10, 5);
             scene.add(sun);
 
-            // 2. الأرضية (عشب)
+            // الأرضية (يجب أن تظهر فوراً)
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(100, 100),
                 new THREE.MeshStandardMaterial({ color: 0x228B22 })
@@ -55,52 +69,44 @@
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // 3. شخصية ABBE (مكعب أنمي ملون)
-            const playerGroup = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.5), new THREE.MeshStandardMaterial({color: 0xff0000}));
-            body.position.y = 0.75;
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({color: 0xffdbac}));
-            head.position.y = 1.7;
-            playerGroup.add(body, head);
-            scene.add(playerGroup);
-
-            // مدرسة (بناء في البعيد لتعرف مكانك)
-            const school = new THREE.Mesh(new THREE.BoxGeometry(5, 10, 5), new THREE.MeshStandardMaterial({color: 0xcccccc}));
-            school.position.set(0, 5, -20);
-            scene.add(school);
+            // لاعب تجريبي (مكعب أحمر)
+            const player = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 2, 1),
+                new THREE.MeshStandardMaterial({ color: 0xff0000 })
+            );
+            player.position.y = 1;
+            scene.add(player);
 
             camera.position.set(0, 5, 10);
             camera.lookAt(0, 1, 0);
 
-            // 4. التحكم باللمس المطور
+            // تحكم اللمس
             let move = { x: 0, z: 0 };
-            window.addEventListener("touchmove", (e) => {
+            window.ontouchmove = (e) => {
                 const t = e.touches[0];
-                move.x = (t.clientX / window.innerWidth - 0.5) * 0.5;
-                move.z = (t.clientY / window.innerHeight - 0.5) * 0.5;
-            });
-            window.addEventListener("touchend", () => { move = { x: 0, z: 0 }; });
+                move.x = (t.clientX / window.innerWidth - 0.5) * 0.4;
+                move.z = (t.clientY / window.innerHeight - 0.5) * 0.4;
+            };
+            window.ontouchend = () => move = { x: 0, z: 0 };
 
-            // 5. محاولة ربط الأونلاين في الخلفية دون تعطيل اللعبة
+            // محاولة تشغيل الأونلاين في الخلفية
             if (typeof Playroom !== 'undefined') {
-                Playroom.insertCoin().catch(() => console.log("Offline Mode"));
+                Playroom.insertCoin().catch(() => console.log("اللعب الجماعي غير متاح حالياً"));
             }
 
             function animate() {
                 requestAnimationFrame(animate);
-                
-                // تحريك اللاعب
-                playerGroup.position.x += move.x;
-                playerGroup.position.z += move.z;
-                
-                // الكاميرا تتبع اللاعب
-                camera.position.x = playerGroup.position.x;
-                camera.position.z = playerGroup.position.z + 10;
-                camera.lookAt(playerGroup.position.x, 1, playerGroup.position.z);
-
+                player.position.x += move.x;
+                player.position.z += move.z;
+                camera.position.x = player.position.x;
+                camera.position.z = player.position.x + 10;
+                camera.lookAt(player.position.x, 1, player.position.z);
                 renderer.render(scene, camera);
             }
             animate();
+            
+            // رسالة تأكيد للنجاح
+            console.log("Engine Started Successfully");
         }
     </script>
 </body>
