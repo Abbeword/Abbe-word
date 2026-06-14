@@ -1,99 +1,180 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ABBE WORLD 🌍</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: 'Arial'; }
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: white; pointer-events: none; text-shadow: 2px 2px 5px #000; }
-        .controls { position: absolute; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
-        .btn { width: 65px; height: 65px; background: rgba(0,0,0,0.5); border: 2px solid gold; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: white; pointer-events: none; text-shadow: 2px 2px 5px #000; z-index: 10; }
+        .controls { position: absolute; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 20; }
+        .btn { width: 65px; height: 65px; background: rgba(0,0,0,0.5); border: 2px solid gold; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; pointer-events: auto; }
+        /* زر البدء في حال علق النظام */
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 100; }
+        #start-button { padding: 20px 40px; font-size: 24px; background: gold; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="ui"><h1>ABBE WORLD 🌍</h1><p>المس يسار الشاشة للحركة | اليمين للرؤية</p></div>
+
+    <div id="start-overlay">
+        <button id="start-button">اضغط للبدء في ABBE WORLD 🚀</button>
+    </div>
+
+    <div id="ui">
+        <h1>ABBE WORLD 🌍</h1>
+        <p>المس يسار الشاشة للحركة | اليمين للرؤية</p>
+    </div>
+
     <div class="controls">
         <div class="btn" id="dance-btn">MJ DANCE</div>
         <div class="btn" id="jump-btn">JUMP</div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/playroomkit/multiplayer.js"></script>
+
     <script>
         const { onPlayerJoin, insertCoin, MyPlayer } = Playroom;
+
+        document.getElementById("start-button").onclick = () => {
+            document.getElementById("start-overlay").style.display = "none";
+            init();
+        };
+
         async function init() {
-            await insertCoin();
-            const scene = new THREE.Scene(); scene.background = new THREE.Color(0xa0d8ef);
+            try {
+                // محاولة بدء نظام الأونلاين
+                await insertCoin();
+            } catch (e) {
+                console.log("Playroom waiting...");
+            }
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xa0d8ef);
+            
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true; document.body.appendChild(renderer.view);
-            const light = new THREE.DirectionalLight(0xffffff, 1.2); light.position.set(10, 20, 10); light.castShadow = true; scene.add(light);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.view);
+
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(10, 20, 10);
+            light.castShadow = true;
+            scene.add(light);
             scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+            // الأرضية
             const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x7cfc00 }));
-            floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-            // مدرسة بسيطة
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // مدرسة (مكعب ضخم كبداية)
             const school = new THREE.Mesh(new THREE.BoxGeometry(10, 15, 10), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
-            school.position.set(-20, 7.5, -20); scene.add(school);
-            const players = {}; let moveData = { x: 0, y: 0 }; let cameraRot = 0; let danceMode = false;
+            school.position.set(-20, 7.5, -20);
+            scene.add(school);
+
+            const players = {};
+            let moveData = { x: 0, y: 0 };
+            let cameraRot = 0;
+            let danceMode = false;
+
             function createAnimeChar(color) {
                 const group = new THREE.Group();
                 const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), new THREE.MeshStandardMaterial({color: color}));
-                torso.position.y = 1.2; group.add(torso);
+                torso.position.y = 1.2;
+                group.add(torso);
+
                 const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({color: 0xffdbac}));
-                head.position.y = 2.1; group.add(head);
-                const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), new THREE.MeshStandardMaterial({color: 0x222222}));
+                head.position.y = 2.1;
+                group.add(head);
+
+                const legGeo = new THREE.BoxGeometry(0.3, 1, 0.3);
+                const lLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({color: 0x222222}));
                 lLeg.position.set(-0.25, 0.5, 0); group.add(lLeg);
-                const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), new THREE.MeshStandardMaterial({color: 0x222222}));
+                const rLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({color: 0x222222}));
                 rLeg.position.set(0.25, 0.5, 0); group.add(rLeg);
+
                 return { group, lLeg, rLeg };
             }
+
             onPlayerJoin((state) => {
                 const char = createAnimeChar(state.getProfile().color.hex);
-                scene.add(char.group); players[state.id] = { ...char, state, vY: 0 };
+                scene.add(char.group);
+                players[state.id] = { ...char, state, vY: 0 };
             });
+
+            // تحكم اللمس
             let touchStart = { x: 0, y: 0 };
-            window.addEventListener("touchstart", e => { touchStart.x = e.touches[0].clientX; touchStart.y = e.touches[0].clientY; });
+            window.addEventListener("touchstart", e => {
+                touchStart.x = e.touches[0].clientX;
+                touchStart.y = e.touches[0].clientY;
+            });
+
             window.addEventListener("touchmove", e => {
                 const t = e.touches[0];
                 if(t.clientX < window.innerWidth / 2) {
-                    moveData.x = (t.clientX - touchStart.x) * 0.02; moveData.y = (t.clientY - touchStart.y) * 0.02;
+                    moveData.x = (t.clientX - touchStart.x) * 0.02;
+                    moveData.y = (t.clientY - touchStart.y) * 0.02;
                 } else {
-                    cameraRot -= (t.clientX - touchStart.x) * 0.01; touchStart.x = t.clientX;
+                    cameraRot -= (t.clientX - touchStart.x) * 0.01;
+                    touchStart.x = t.clientX;
                 }
             });
-            window.addEventListener("touchend", () => moveData = { x: 0, y: 0 });
-            document.getElementById("dance-btn").ontouchstart = () => danceMode = !danceMode;
-            document.getElementById("jump-btn").onclick = () => { if(players[MyPlayer().id].group.position.y < 0.1) players[MyPlayer().id].vY = 0.25; };
+
+            window.addEventListener("touchend", () => { moveData = { x: 0, y: 0 }; });
+
+            document.getElementById("dance-btn").ontouchstart = (e) => { e.preventDefault(); danceMode = !danceMode; };
+            document.getElementById("jump-btn").onclick = () => {
+                const my = players[MyPlayer()?.id];
+                if(my && my.group.position.y < 0.1) my.vY = 0.25;
+            };
+
             function animate() {
                 requestAnimationFrame(animate);
                 const my = MyPlayer();
+
                 Object.values(players).forEach(p => {
-                    const isMe = p.state.id === my.id;
+                    const isMe = my && p.state.id === my.id;
                     let pos = p.state.getState("pos") || {x:0, y:0, z:0};
                     let rot = p.state.getState("rot") || 0;
+
                     if(isMe) {
                         const angle = cameraRot;
                         pos.x += (moveData.x * Math.cos(angle) + moveData.y * Math.sin(angle)) * 0.15;
                         pos.z += (moveData.y * Math.cos(angle) - moveData.x * Math.sin(angle)) * 0.15;
-                        if(Math.abs(moveData.x) > 0.01) rot = Math.atan2(moveData.x, moveData.y) + cameraRot;
-                        p.group.position.y += p.vY; p.vY -= 0.01;
+                        
+                        if(Math.abs(moveData.x) > 0.01 || Math.abs(moveData.y) > 0.01) {
+                            rot = Math.atan2(moveData.x, moveData.y) + cameraRot;
+                        }
+
+                        p.group.position.y += p.vY;
+                        p.vY -= 0.01;
                         if(p.group.position.y < 0) { p.group.position.y = 0; p.vY = 0; }
                         pos.y = p.group.position.y;
-                        p.state.setState("pos", pos); p.state.setState("rot", rot);
+
+                        p.state.setState("pos", pos);
+                        p.state.setState("rot", rot);
+
                         camera.position.set(pos.x + Math.sin(cameraRot)*10, pos.y + 5, pos.z + Math.cos(cameraRot)*10);
                         camera.lookAt(pos.x, pos.y + 1, pos.z);
                     }
-                    p.group.position.set(pos.x, pos.y, pos.z); p.group.rotation.y = rot;
+
+                    p.group.position.set(pos.x, pos.y, pos.z);
+                    p.group.rotation.y = rot;
+
+                    // رقصة MJ بسيطة
                     if(danceMode && isMe) {
                         p.lLeg.rotation.x = Math.sin(Date.now()*0.01)*0.8;
                         p.rLeg.rotation.x = -Math.sin(Date.now()*0.01)*0.8;
                     }
                 });
+
                 renderer.render(scene, camera);
             }
             animate();
         }
-        init();
     </script>
 </body>
 </html>
