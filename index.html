@@ -3,100 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABBE WORLD PRO</title>
+    <title>ABBE WORLD DEBUG</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; font-family: sans-serif; touch-action: none; }
-        #start-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        #btn { padding: 30px; background: gold; border: 5px solid white; border-radius: 20px; font-size: 20px; font-weight: bold; }
-        .controls { position: absolute; bottom: 20px; right: 20px; display: none; z-index: 100; }
-        .jump { width: 80px; height: 80px; background: rgba(0,0,0,0.5); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; touch-action: none; font-family: sans-serif; }
+        #overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #87CEEB; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 9999; 
+        }
+        #big-btn { 
+            padding: 40px; background: #FFD700; border: 8px solid white; 
+            border-radius: 20px; font-size: 24px; font-weight: bold; color: black;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        #status-log { color: white; margin-top: 20px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay">
-        <div id="btn">🚀 اضغط هنا للبدء فوراً</div>
+    <div id="overlay">
+        <div id="big-btn" onclick="startSystem()">🚀 ابدأ اللعبة الآن</div>
+        <div id="status-log">نظام ABBE جاهز للتشغيل...</div>
     </div>
 
-    <div class="controls" id="game-ui">
-        <div class="jump" id="jump-btn">JUMP</div>
-    </div>
-
+    <!-- تحميل المكتبات مع التأكد من المصدر -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/playroomkit/multiplayer.js"></script>
 
     <script>
-        const { onPlayerJoin, insertCoin, MyPlayer } = Playroom;
+        // تنبيه فوري عند تحميل الصفحة لنتأكد أن النسخة هي الجديدة
+        console.log("Version 3.0 Loaded");
 
-        // زر البدء - استخدمنا ميزة اللمس المباشر للأيفون
-        const startBtn = document.getElementById("btn");
-        
-        startBtn.onclick = function() {
-            console.log("Button Clicked");
-            document.getElementById("start-overlay").style.display = "none";
-            document.getElementById("game-ui").style.display = "flex";
-            
-            // تشغيل اللعبة
-            init();
-        };
+        function startSystem() {
+            // 1. إخفاء الشاشة فوراً عند اللمس
+            document.getElementById("overlay").style.display = "none";
+            alert("تم استلام اللمس! جاري تشغيل المحرك...");
 
-        async function init() {
-            // محاولة الاتصال بالأونلاين دون تعطيل اللعبة
-            insertCoin().catch(e => console.log("Playroom Offline Mode"));
+            try {
+                initGame();
+            } catch (err) {
+                alert("حدث خطأ تقني: " + err.message);
+            }
+        }
 
+        async function initGame() {
+            // محاولة تشغيل الأونلاين
+            if (typeof Playroom !== 'undefined') {
+                Playroom.insertCoin().catch(e => console.log("Playroom skip"));
+            } else {
+                alert("تحذير: مكتبة الأونلاين لم تتحمل، سنلعب أوفلاين.");
+            }
+
+            // إعداد THREE.js
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.view);
 
+            // إضاءة وأرضية
             scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(10, 20, 10);
-            scene.add(light);
-
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x34a853 }));
-            floor.rotation.x = -Math.PI/2;
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 100), 
+                new THREE.MeshStandardMaterial({ color: 0x228B22 })
+            );
+            floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            const players = {};
-            let move = { x: 0, y: 0 };
+            // مكعب يمثل اللاعب (في حال لم يشتغل الأونلاين فوراً)
+            const cube = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 2, 1), 
+                new THREE.MeshStandardMaterial({ color: 0xff0000 })
+            );
+            cube.position.y = 1;
+            scene.add(cube);
 
-            onPlayerJoin((state) => {
-                const char = new THREE.Group();
-                const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.5, 0.5), new THREE.MeshStandardMaterial({color: state.getProfile().color.hex}));
-                body.position.y = 0.75;
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.4), new THREE.MeshStandardMaterial({color: 0xffdbac}));
-                head.position.y = 1.7;
-                char.add(body, head);
-                scene.add(char);
-                players[state.id] = { char, state, vY: 0 };
-            });
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 1, 0);
 
-            // تحكم لمس بسيط جداً
+            // حركة بسيطة للمكعب عند لمس الشاشة
             window.ontouchmove = (e) => {
                 const t = e.touches[0];
-                move.x = (t.clientX - window.innerWidth/2) * 0.005;
-                move.y = (t.clientY - window.innerHeight/2) * 0.005;
+                cube.position.x = (t.clientX / window.innerWidth - 0.5) * 10;
+                cube.position.z = (t.clientY / window.innerHeight - 0.5) * 10;
             };
-            window.ontouchend = () => { move = { x: 0, y: 0 }; };
 
             function animate() {
                 requestAnimationFrame(animate);
-                const my = MyPlayer();
-                if(my && players[my.id]) {
-                    const p = players[my.id];
-                    p.char.position.x += move.x;
-                    p.char.position.z += move.y;
-                    my.setState("pos", {x: p.char.position.x, z: p.char.position.z});
-                    
-                    camera.position.set(p.char.position.x, 5, p.char.position.z + 10);
-                    camera.lookAt(p.char.position.x, 1, p.char.position.z);
-                }
                 renderer.render(scene, camera);
             }
             animate();
+            alert("المحرك يعمل! ابحث عن المكعب الأحمر.");
         }
     </script>
 </body>
