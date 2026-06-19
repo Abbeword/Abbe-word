@@ -3,109 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ABBE WORLD: ANIME 🏰</title>
+    <title>ABBE CITY 🏰</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #fff; touch-action: none; -webkit-user-select: none; font-family: 'Comic Sans MS', cursive, sans-serif; }
-        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #a0e6ff; display: flex; align-items: center; justify-content: center; z-index: 10000; }
-        #btn-start { padding: 30px 60px; background: #FF4500; border: 8px solid #FFD700; border-radius: 60px; font-size: 26px; font-weight: bold; color: white; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-        .controls { position: absolute; bottom: 40px; right: 20px; display: none; flex-direction: column; gap: 15px; z-index: 100; pointer-events: auto; }
-        .btn-c { width: 85px; height: 85px; background: rgba(255,255,255,0.8); border: 4px solid #FF4500; border-radius: 50%; color: #FF4500; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
+        #ui { position: absolute; bottom: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; pointer-events: none; font-size: 12px; }
+        #jump-btn { position: absolute; bottom: 40px; right: 20px; width: 80px; height: 80px; background: rgba(255,69,0,0.8); border: 4px solid white; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 1000; }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay">
-        <button id="btn-start" onclick="startApp()">✨ دخول عالم الأنمي ✨</button>
-    </div>
-
-    <div class="controls" id="ui-btns">
-        <div class="btn-c" id="jump-btn">قفز 🐰</div>
-    </div>
+    <div id="ui">اليسار: للمشي | اليمين: تدوير الكاميرا 🔄</div>
+    <div id="jump-btn">قفز 🦘</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        function startApp() {
-            document.getElementById("start-overlay").style.display = "none";
-            document.getElementById("ui-btns").style.display = "flex";
-            initGame();
-        }
+        // تشغيل اللعبة فوراً بمجرد تحميل الصفحة
+        window.onload = init;
 
-        function initGame() {
+        function init() {
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB);
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            scene.background = new THREE.Color(0xa0e6ff);
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             document.body.appendChild(renderer.domElement);
 
             scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-            const sun = new THREE.DirectionalLight(0xffffff, 1);
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
             sun.position.set(50, 100, 50);
             scene.add(sun);
 
-            // --- الخريطة الدائرية ---
-            const radius = 150;
+            // الأرضية الدائرية
+            const radius = 100;
             const floor = new THREE.Mesh(new THREE.CircleGeometry(radius, 64), new THREE.MeshStandardMaterial({ color: 0x7cfc00 }));
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // الحديقة المركزية
-            const park = new THREE.Mesh(new THREE.CircleGeometry(45, 32), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+            // حديقة في المنتصف
+            const park = new THREE.Mesh(new THREE.CircleGeometry(30, 32), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
             park.position.y = 0.01; park.rotation.x = -Math.PI / 2;
             scene.add(park);
 
-            // الطرقات
-            const road = new THREE.Mesh(new THREE.TorusGeometry(radius - 25, 6, 2, 100), new THREE.MeshStandardMaterial({color: 0x555555}));
-            road.position.y = 0.02; road.rotation.x = Math.PI/2;
-            scene.add(road);
-
-            // --- وظيفة التسميات ---
-            function createLabel(text, x, z) {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 256; canvas.height = 128;
-                ctx.fillStyle = '#FF4500';
-                ctx.roundRect = function(x,y,w,h,r){if(w<2*r)r=w/2;if(h<2*r)r=h/2;this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};
-                ctx.roundRect(10, 10, 236, 108, 20).fill();
-                ctx.fillStyle = 'white'; ctx.font = 'bold 35px Arial'; ctx.textAlign = 'center';
-                ctx.fillText(text, 128, 75);
-                const texture = new THREE.CanvasTexture(canvas);
-                const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
-                sprite.position.set(x, 22, z); sprite.scale.set(12, 6, 1);
-                scene.add(sprite);
-            }
-
-            // --- المباني الأنمي ---
+            // --- بناء المباني الأنمي ---
             const buildings = [
-                { name: "المدرسة 🏫", color: 0xFFFFFF, ang: 0 },
-                { name: "بيتزا 🍕", color: 0xFFD700, ang: Math.PI * 0.4 },
-                { name: "مسرح 🎭", color: 0xFF4500, ang: Math.PI * 0.8 },
-                { name: "ألعاب 🎮", color: 0x00BFFF, ang: Math.PI * 1.2 },
-                { name: "مثلجات 🍦", color: 0xFF69B4, ang: Math.PI * 1.6 }
+                { name: "مدرسة", color: 0xffffff, x: -60, z: -40 },
+                { name: "بيتزا", color: 0xffd700, x: 60, z: -40 },
+                { name: "مسرح", color: 0xff4500, x: -60, z: 40 },
+                { name: "ألعاب", color: 0x00bfff, x: 60, z: 40 }
             ];
 
             buildings.forEach(loc => {
-                const x = Math.cos(loc.ang) * (radius - 40);
-                const z = Math.sin(loc.ang) * (radius - 40);
-                const bGroup = new THREE.Group();
-                const bBody = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), new THREE.MeshStandardMaterial({color: loc.color}));
-                bBody.position.y = 10;
-                // نوافذ
-                const win = new THREE.Mesh(new THREE.BoxGeometry(15, 5, 20.2), new THREE.MeshBasicMaterial({color: 0x87CEEB}));
-                win.position.y = 5; bBody.add(win);
-                bGroup.add(bBody); bGroup.position.set(x, 0, z); bGroup.lookAt(0, 10, 0);
-                scene.add(bGroup);
-                createLabel(loc.name, x, z);
+                const b = new THREE.Mesh(new THREE.BoxGeometry(15, 20, 15), new THREE.MeshStandardMaterial({color: loc.color}));
+                b.position.set(loc.x, 10, loc.z);
+                scene.add(b);
+                
+                // لوحة بسيطة فوق المبنى
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 128; canvas.height = 64;
+                ctx.fillStyle = "black"; ctx.font = "bold 30px Arial"; ctx.textAlign="center";
+                ctx.fillText(loc.name, 64, 40);
+                const tex = new THREE.CanvasTexture(canvas);
+                const sprite = new THREE.Sprite(new THREE.SpriteMaterial({map: tex}));
+                sprite.position.set(loc.x, 25, loc.z); sprite.scale.set(10, 5, 1);
+                scene.add(sprite);
             });
 
-            // --- بناء الشخصيات (Chibi Style) ---
-            function createChibi(heroType, color) {
-                const g = new THREE.Group();
-                const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1, 4, 8), new THREE.MeshStandardMaterial({color: color}));
-                body.position.y = 0.8; g.add(body);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), new THREE.MeshStandardMaterial({color: 0xffdbac}));
-                head.position.y = 2.0; g.add(head);
+            // --- شخصية سوبرمان أنمي (Chibi) ---
+            const player = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1, 4, 8), new THREE.MeshStandardMaterial({color: "blue"}));
+            body.position.y = 1; player.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), new THREE.MeshStandardMaterial({color: 0xffdbac}));
+            head.position.y = 2; player.add(head);
+            const cape = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.5), new THREE.MeshStandardMaterial({color: "red", side: THREE.DoubleSide}));
+            cape.position.set(0, 1.5, -0.6); cape.rotation.x = 0.2; player.add(cape);
+            scene.add(player);
+
+            // --- قطار أحمر يدور ---
+            const train = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 8), new THREE.MeshStandardMaterial({color: "red"}));
+            scene.add(train);
+            let trainAng = 0;
+
+            // --- التحكم الذكي 360 ---
+            let move = { x: 0, z: 0 }; let touchStart = { x: 0, y: 0 }; let camRotY = 0; let vY = 0;
+            window.addEventListener("touchstart", e => { touchStart.x = e.touches[0].clientX; touchStart.y = e.touches[0].clientY; });
+            window.addEventListener("touchmove", e => {
+                const t = e.touches[0];
+                if(t.clientX < window.innerWidth/2) {
+                    move.x = (t.clientX - touchStart.x) * 0.01; move.z = (t.clientY - touchStart.y) * 0.01;
+                } else {
+                    camRotY -= (t.clientX - touchStart.x) * 0.005; touchStart.x = t.clientX;
+                }
+            }, {passive: false});
+            window.addEventListener("touchend", () => move = { x: 0, z: 0 });
+            document.getElementById("jump-btn").addEventListener("touchstart", () => { if(player.position.y < 0.1) vY = 0.3; });
+
+            function animate() {
+                requestAnimationFrame(animate);
                 
-                if(heroType === 'superman') {
+                // حركة القطار
+                trainAng += 0.005;
+                train.position.set(Math.cos(trainAng)*80, 1.5, Math.sin(trainAng)*80);
+                train.lookAt(Math.cos(trainAng+0.1)*80, 1.5, Math.sin(trainAng+0.1)*80);
+
+                // حركة اللاعب
+                player.position.x += (move.x * Math.cos(camRotY) + move.z * Math.sin(camRotY)) * 0.25;
+                player.position.z += (move.z * Math.cos(camRotY) - move.x * Math.sin(camRotY)) * 0.25;
+                
+                player.position.y += vY; vY -= 0.015;
+                if(player.position.y < 0) { player.position.y = 0; vY = 0; }
+
+                // الكاميرا 360 درجة
+                camera.position.set(player.position.x + Math.sin(camRotY)*20, player.position.y + 12, player.position.z + Math.cos(camRotY)*20);
+                camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+                
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>
