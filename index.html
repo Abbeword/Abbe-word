@@ -2,60 +2,47 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABBE WORLD 🌍</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ABBE WORLD: THE CITY</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; }
-        #start-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #87CEEB; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 9999; 
-        }
-        #btn-start { 
-            padding: 30px 60px; background: gold; border: 5px solid white; 
-            border-radius: 20px; font-size: 20px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        #status { color: white; margin-top: 15px; font-size: 14px; }
-        .controls { position: absolute; bottom: 30px; right: 20px; display: none; flex-direction: column; gap: 10px; z-index: 100; }
-        .btn-circle { width: 70px; height: 70px; background: rgba(0,0,0,0.5); border: 2px solid white; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events: auto; }
+        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; -webkit-user-select: none; font-family: sans-serif; }
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        #btn-start { padding: 25px 50px; background: gold; border: 5px solid white; border-radius: 20px; font-size: 20px; font-weight: bold; }
+        
+        /* واجهة التحكم */
+        .controls { position: absolute; bottom: 40px; right: 20px; display: none; flex-direction: column; gap: 15px; z-index: 100; pointer-events: auto; }
+        .btn-circle { width: 75px; height: 75px; background: rgba(0,0,0,0.6); border: 2px solid gold; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); -webkit-tap-highlight-color: transparent; }
+        
+        #ui-info { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-weight: bold; text-shadow: 2px 2px 5px #000; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="start-overlay">
-        <button id="btn-start">🚀 تشغيل عالم ABBE 🚀</button>
-        <div id="status">جاهز للبدء...</div>
+        <button id="btn-start">🚀 دخول مدينة ABBE 🚀</button>
     </div>
+
+    <div id="ui-info">عالم ABBE: استكشف المدرسة ومحل البيتزا</div>
 
     <div class="controls" id="ui-btns">
         <div class="btn-circle" id="jump-btn">JUMP</div>
         <div class="btn-circle" id="dance-btn">DANCE</div>
     </div>
 
-    <!-- تحميل المكتبات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/playroomkit/multiplayer.js"></script>
 
     <script>
+        const { onPlayerJoin, insertCoin, MyPlayer } = Playroom;
         const startBtn = document.getElementById("btn-start");
-        const statusText = document.getElementById("status");
 
-        // دالة البدء عند اللمس
         startBtn.onclick = function() {
-            console.log("Starting...");
-            // 1. إخفاء شاشة البدء فوراً
             document.getElementById("start-overlay").style.display = "none";
             document.getElementById("ui-btns").style.display = "flex";
-            
-            // 2. تشغيل المحرك 3D فوراً
-            try {
-                initGame();
-            } catch(e) {
-                alert("حدث خطأ في تشغيل المحرك: " + e);
-            }
+            initGame();
         };
 
-        function initGame() {
+        async function initGame() {
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -64,8 +51,7 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             document.body.appendChild(renderer.domElement);
 
-            // إضاءة
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const sun = new THREE.DirectionalLight(0xffffff, 1);
             sun.position.set(10, 20, 10);
             scene.add(sun);
@@ -75,52 +61,95 @@
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // المدرسة
-            const school = new THREE.Mesh(new THREE.BoxGeometry(15, 10, 10), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
-            school.position.set(0, 5, -30);
+            // --- المباني ---
+            // مدرسة (رمادية مع سقف أحمر)
+            const school = new THREE.Group();
+            const schoolBody = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 8), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
+            schoolBody.position.y = 5;
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(13, 2, 9), new THREE.MeshStandardMaterial({color: 0xaa0000}));
+            roof.position.y = 11;
+            school.add(schoolBody, roof);
+            school.position.set(-15, 0, -25);
             scene.add(school);
 
-            // اللاعب المحلي (يظهر فوراً)
+            // محل بيتزا (أصفر مع لافتة)
+            const pizzaShop = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 8), new THREE.MeshStandardMaterial({color: 0xffcc00}));
+            pizzaShop.position.set(15, 3, -25);
+            scene.add(pizzaShop);
+
+            // --- اللاعب المحلي ---
             const myAvatar = new THREE.Group();
             const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), new THREE.MeshStandardMaterial({color: 0x0000ff}));
             body.position.y = 0.6;
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({color: 0xFFDB58}));
             head.position.y = 1.5;
-            const eye = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0xff0000}));
-            const eyeL = eye.clone(); eyeL.position.set(-0.15, 1.5, 0.31);
-            const eyeR = eye.clone(); eyeR.position.set(0.15, 1.5, 0.31);
+            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), new THREE.MeshBasicMaterial({color: 0xff0000}));
+            eyeL.position.set(-0.15, 1.5, 0.31);
+            const eyeR = eyeL.clone(); eyeR.position.set(0.15, 1.5, 0.31);
             myAvatar.add(body, head, eyeL, eyeR);
             scene.add(myAvatar);
 
-            camera.position.set(0, 5, 10);
+            camera.position.set(0, 6, 12);
             camera.lookAt(0, 1, 0);
 
-            // التحكم
-            let move = { x: 0, y: 0 };
+            // --- التحكم ---
+            let move = { x: 0, z: 0 };
             let touchStart = { x: 0, y: 0 };
-            window.addEventListener("touchstart", e => { touchStart.x = e.touches[0].clientX; touchStart.y = e.touches[0].clientY; });
-            window.addEventListener("touchmove", e => {
-                const t = e.touches[0];
-                move.x = (t.clientX - touchStart.x) * 0.008;
-                move.y = (t.clientY - touchStart.y) * 0.008;
-            });
-            window.addEventListener("touchend", () => move = { x: 0, y: 0 });
+            let danceMode = false;
+            let vY = 0;
 
-            // محاولة الاتصال بالأونلاين في الخلفية بعد البدء
-            setTimeout(() => {
-                if (window.Playroom) {
-                    window.Playroom.insertCoin().catch(e => console.log("Offline Mode Active"));
+            window.addEventListener("touchstart", (e) => {
+                if (e.touches[0].clientX < window.innerWidth / 2) {
+                    touchStart.x = e.touches[0].clientX;
+                    touchStart.y = e.touches[0].clientY;
                 }
-            }, 500);
+            }, { passive: false });
+
+            window.addEventListener("touchmove", (e) => {
+                const t = e.touches[0];
+                if (t.clientX < window.innerWidth / 2) {
+                    move.x = (t.clientX - touchStart.x) * 0.008;
+                    move.z = (t.clientY - touchStart.y) * 0.008;
+                }
+                e.preventDefault(); // يمنع تعليق المتصفح
+            }, { passive: false });
+
+            window.addEventListener("touchend", () => { move = { x: 0, z: 0 }; });
+
+            // تفعيل الأزرار
+            document.getElementById("jump-btn").addEventListener("touchstart", (e) => {
+                if (myAvatar.position.y < 0.1) vY = 0.25;
+                e.preventDefault();
+            });
+
+            document.getElementById("dance-btn").addEventListener("touchstart", (e) => {
+                danceMode = !danceMode;
+                e.preventDefault();
+            });
+
+            // محاولة الأونلاين في الخلفية
+            insertCoin().catch(() => {});
 
             function animate() {
                 requestAnimationFrame(animate);
                 
-                // تحريك اللاعب والكاميرا
+                // حركة اللاعب
                 myAvatar.position.x += move.x;
-                myAvatar.position.z += move.y;
-                camera.position.x = myAvatar.position.x;
-                camera.position.z = myAvatar.position.z + 10;
+                myAvatar.position.z += move.z;
+
+                // قفز
+                myAvatar.position.y += vY;
+                vY -= 0.01;
+                if (myAvatar.position.y < 0) { myAvatar.position.y = 0; vY = 0; }
+
+                // رقص
+                if (danceMode) {
+                    myAvatar.rotation.y += 0.2;
+                    myAvatar.position.y = Math.abs(Math.sin(Date.now()*0.01)) * 0.5;
+                }
+
+                // الكاميرا تتبع اللاعب
+                camera.position.lerp(new THREE.Vector3(myAvatar.position.x, myAvatar.position.y + 6, myAvatar.position.z + 12), 0.1);
                 camera.lookAt(myAvatar.position.x, 1, myAvatar.position.z);
 
                 renderer.render(scene, camera);
