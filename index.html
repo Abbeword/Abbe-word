@@ -5,39 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ABBE WORLD 🌍</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: sans-serif; -webkit-user-select: none; }
-        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 10000; }
-        #start-btn { padding: 25px 50px; background: gold; border: 5px solid white; border-radius: 20px; font-size: 20px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .controls { position: absolute; bottom: 40px; right: 20px; display: none; flex-direction: column; gap: 10px; z-index: 100; }
+        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; -webkit-user-select: none; font-family: sans-serif; }
+        #start-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #87CEEB; display: flex; align-items: center; justify-content: center; z-index: 10000; }
+        #btn-start { padding: 25px 50px; background: gold; border: 5px solid white; border-radius: 20px; font-size: 20px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .controls { position: absolute; bottom: 40px; right: 20px; display: none; flex-direction: column; gap: 15px; z-index: 100; pointer-events: auto; }
         .btn-game { width: 75px; height: 75px; background: rgba(0,0,0,0.6); border: 2px solid gold; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
-        #ui-msg { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-weight: bold; text-shadow: 2px 2px 4px #000; pointer-events: none; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="start-screen">
-        <button id="start-btn">🚀 دخول ABBE WORLD 🚀</button>
+    <!-- وضعنا أمر التشغيل مباشرة داخل الزر onclick -->
+    <div id="start-overlay">
+        <button id="btn-start" onclick="forceStart()">🚀 دخول ABBE WORLD 🚀</button>
     </div>
-
-    <div id="ui-msg">استكشف المدرسة ومطعم البيتزا! 🍕🏫</div>
 
     <div class="controls" id="controls-ui">
         <div class="btn-game" id="jump-btn">JUMP</div>
-        <div class="btn-game" id="dance-btn" style="background: rgba(255, 215, 0, 0.4);">DANCE</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/playroomkit/multiplayer.js"></script>
 
     <script>
-        const { onPlayerJoin, insertCoin, MyPlayer } = Playroom;
-
-        document.getElementById("start-btn").onclick = function() {
-            document.getElementById("start-screen").style.display = "none";
+        function forceStart() {
+            // رسالة تنبيه لنتأكد أن الزر استجاب
+            console.log("Button Pressed");
+            document.getElementById("start-overlay").style.display = "none";
             document.getElementById("controls-ui").style.display = "flex";
-            document.getElementById("ui-msg").style.display = "block";
+            
+            if (typeof THREE === 'undefined') {
+                alert("المكتبة لا تزال تتحمل.. انتظر ثواني واضغط مرة أخرى");
+                location.reload(); // إعادة تحميل إذا فشل
+                return;
+            }
             initGame();
-        };
+        }
 
         async function initGame() {
             const scene = new THREE.Scene();
@@ -48,114 +50,62 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             document.body.appendChild(renderer.domElement);
 
-            // إضاءة واقعية
-            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
             const sun = new THREE.DirectionalLight(0xffffff, 1);
             sun.position.set(10, 20, 10);
             scene.add(sun);
 
-            // الأرضية (عشب أخضر مع شبكة)
-            const floor = new THREE.Group();
-            const grass = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x34a853 }));
-            grass.rotation.x = -Math.PI/2;
-            floor.add(grass);
-            const grid = new THREE.GridHelper(1000, 100, 0x228B22, 0x228B22);
-            grid.rotation.x = 0;
-            floor.add(grid);
+            // الأرضية
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x34a853 }));
+            floor.rotation.x = -Math.PI/2;
             scene.add(floor);
 
-            // --- بناء المدرسة ---
-            const school = new THREE.Group();
-            const building = new THREE.Mesh(new THREE.BoxGeometry(15, 10, 12), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
-            building.position.y = 5;
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(16, 2, 13), new THREE.MeshStandardMaterial({color: 0xaa0000}));
-            roof.position.y = 11;
-            school.add(building, roof);
-            school.position.set(-20, 0, -40);
+            // المدرسة
+            const school = new THREE.Mesh(new THREE.BoxGeometry(15, 10, 10), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
+            school.position.set(-15, 5, -30);
             scene.add(school);
 
-            // --- بناء مطعم البيتزا ---
-            const pizza = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 10), new THREE.MeshStandardMaterial({color: 0xffcc00}));
-            pizza.position.set(20, 3, -40);
-            scene.add(pizza);
+            // الشخصية المحلية (تظهر فوراً)
+            const player = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.4), new THREE.MeshStandardMaterial({color: "blue"}));
+            body.position.y = 0.6;
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({color: "yellow"}));
+            head.position.y = 1.5;
+            player.add(body, head);
+            scene.add(player);
 
-            const players = {};
-            let moveInput = { x: 0, z: 0 };
-            let touchStart = { x: 0, y: 0 };
-            let isDancing = false;
-
-            // --- بناء شخصية الأنمي/روبلوكس ---
-            function createCharacter(color) {
-                const group = new THREE.Group();
-                // جسم (أزرق)
-                const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.5), new THREE.MeshStandardMaterial({color: 0x0000ff}));
-                torso.position.y = 1.2;
-                group.add(torso);
-                // رأس (أصفر)
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), new THREE.MeshStandardMaterial({color: 0xFFDB58}));
-                head.position.y = 2.1;
-                group.add(head);
-                // أرجل (خضراء)
-                const legGeo = new THREE.BoxGeometry(0.4, 0.8, 0.4);
-                const lLeg = new THREE.Mesh(legGeo, new THREE.MeshStandardMaterial({color: 0x34a853}));
-                lLeg.position.set(-0.25, 0.4, 0); group.add(lLeg);
-                const rLeg = lLeg.clone(); rLeg.position.set(0.25, 0.4, 0); group.add(rLeg);
-                
-                return { group, lLeg, rLeg };
-            }
-
-            onPlayerJoin((state) => {
-                const char = createCharacter(state.getProfile().color.hex);
-                scene.add(char.group);
-                players[state.id] = { ...char, state, vY: 0 };
-            });
+            camera.position.set(0, 8, 15);
+            camera.lookAt(0, 0, 0);
 
             // تحكم اللمس
+            let moveInput = { x: 0, z: 0 };
+            let touchStart = { x: 0, y: 0 };
+
             window.addEventListener("touchstart", e => {
                 touchStart.x = e.touches[0].clientX;
                 touchStart.y = e.touches[0].clientY;
-            });
+            }, {passive: false});
+
             window.addEventListener("touchmove", e => {
-                const dx = e.touches[0].clientX - touchStart.x;
-                const dy = e.touches[0].clientY - touchStart.y;
-                moveInput.x = dx * 0.008;
-                moveInput.z = dy * 0.008;
-            });
-            window.addEventListener("touchend", () => moveInput = { x: 0, z: 0 });
+                const t = e.touches[0];
+                moveInput.x = (t.clientX - touchStart.x) * 0.008;
+                moveInput.z = (t.clientY - touchStart.y) * 0.008;
+                e.preventDefault();
+            }, {passive: false});
 
-            // أزرار
-            document.getElementById("jump-btn").addEventListener("touchstart", () => {
-                const my = players[MyPlayer()?.id];
-                if(my && my.group.position.y < 0.1) my.vY = 0.3;
-            });
-            document.getElementById("dance-btn").addEventListener("touchstart", () => isDancing = !isDancing);
+            window.addEventListener("touchend", () => { moveInput = { x: 0, z: 0 }; });
 
-            insertCoin().catch(() => {});
+            // محاولة الأونلاين في الخلفية
+            if(window.Playroom) {
+                Playroom.insertCoin().catch(() => {});
+            }
 
             function animate() {
                 requestAnimationFrame(animate);
-                const my = MyPlayer();
-
-                Object.values(players).forEach(p => {
-                    const isMe = my && p.state.id === my.id;
-                    let pos = p.state.getState("pos") || {x:0, y:0, z:0};
-
-                    if(isMe) {
-                        pos.x += moveInput.x; pos.z += moveInput.z;
-                        p.group.position.y += p.vY; p.vY -= 0.015;
-                        if(p.group.position.y < 0) { p.group.position.y = 0; p.vY = 0; }
-                        pos.y = p.group.position.y;
-                        p.state.setState("pos", pos);
-                        camera.position.lerp(new THREE.Vector3(pos.x, pos.y + 10, pos.z + 20), 0.1);
-                        camera.lookAt(pos.x, pos.y, pos.z);
-                    }
-                    p.group.position.set(pos.x, pos.y, pos.z);
-                    if(isDancing && isMe) {
-                        p.group.rotation.y += 0.2;
-                        p.lLeg.rotation.x = Math.sin(Date.now()*0.02)*0.5;
-                        p.rLeg.rotation.x = -Math.sin(Date.now()*0.02)*0.5;
-                    }
-                });
+                player.position.x += moveInput.x;
+                player.position.z += moveInput.z;
+                camera.position.set(player.position.x, 8, player.position.z + 15);
+                camera.lookAt(player.position.x, 0, player.position.z);
                 renderer.render(scene, camera);
             }
             animate();
