@@ -1,142 +1,143 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABBE CITY 🏰</title>
+    <title>ABBE WORLD: THE LEGENDS 🏰</title>
     <style>
         body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; font-family: 'Comic Sans MS', sans-serif; }
-        /* نصوص فوق المباني - مضمونة الظهور */
-        .label { position: absolute; background: rgba(255, 69, 0, 0.8); color: white; padding: 5px 10px; border-radius: 10px; font-weight: bold; pointer-events: none; transform: translate(-50%, -50%); font-size: 14px; border: 2px solid gold; }
-        #controls-ui { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; }
-        .joy { width: 100px; height: 100px; background: rgba(255,255,255,0.2); border-radius: 50%; pointer-events: auto; border: 2px solid white; }
-        .btn-jump { width: 80px; height: 80px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; pointer-events: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .label { position: absolute; background: gold; color: black; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; border: 2px solid #FF4500; transform: translate(-50%, -50%); }
+        .controls { position: absolute; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
+        .btn { width: 80px; height: 80px; background: rgba(255, 69, 0, 0.9); border: 3px solid white; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- أسماء الأماكن -->
-    <div id="labels-container">
+    <div id="ui-layer">
         <div class="label" style="top: 20%; left: 20%;">المدرسة 🏫</div>
         <div class="label" style="top: 20%; left: 80%;">بيتزا 🍕</div>
-        <div class="label" style="top: 80%; left: 20%;">مسرح 🎭</div>
-        <div class="label" style="top: 80%; left: 80%;">العاب 🎮</div>
-        <div class="label" style="top: 50%; left: 50%;">الحديقة 🌳</div>
+        <div class="label" style="top: 80%; left: 20%;">المسرح 🎭</div>
+        <div class="label" style="top: 80%; left: 80%;">الألعاب 🎮</div>
+        <div class="label" style="top: 50%; left: 50%;">حديقة ABBE 🌳</div>
     </div>
 
-    <div id="controls-ui">
-        <div class="joy" id="move-pad"></div>
-        <div class="btn-jump" id="jump-btn">قفز 🦘</div>
+    <div class="controls">
+        <div class="btn" id="jump-btn">قفز 🦘</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 
     <script>
-        // تشغيل فوري
         window.onload = init;
 
         function init() {
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa0e6ff);
-            
+            scene.background = new THREE.Color(0x87CEEB);
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             document.body.appendChild(renderer.domElement);
 
-            const light = new THREE.AmbientLight(0xffffff, 1);
-            scene.add(light);
-
-            // الأرضية الدائرية
-            const floor = new THREE.Mesh(
-                new THREE.CircleGeometry(100, 64),
-                new THREE.MeshBasicMaterial({ color: 0x7cfc00 })
-            );
+            // أرضية خضراء (عشب)
+            const floor = new THREE.Mesh(new THREE.CircleGeometry(100, 32), new THREE.MeshBasicMaterial({ color: 0x34a853 }));
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // الحديقة في النص
-            const park = new THREE.Mesh(
-                new THREE.CircleGeometry(30, 32),
-                new THREE.MeshBasicMaterial({ color: 0x228B22 })
-            );
-            park.position.y = 0.1;
-            park.rotation.x = -Math.PI / 2;
-            scene.add(park);
+            // --- بناء الشخصيات (سوبرمان، ماريو، Guest 1337) ---
+            function createHero(color, type, x, z) {
+                const group = new THREE.Group();
+                // جسم
+                const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1, 4, 8), new THREE.MeshBasicMaterial({ color: color }));
+                body.position.y = 1;
+                group.add(body);
+                // رأس
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffdbac }));
+                head.position.y = 2.1;
+                group.add(head);
 
-            // --- المباني ---
-            function createBuild(x, z, color) {
-                const b = new THREE.Mesh(
-                    new THREE.BoxGeometry(15, 15, 15),
-                    new THREE.MeshBasicMaterial({ color: color })
-                );
+                if(type === 'superman') { // وشاح أحمر
+                    const cape = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.8), new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide }));
+                    cape.position.set(0, 1.5, -0.6); cape.rotation.x = 0.2; group.add(cape);
+                }
+                if(type === 'mario') { // قبعة حمراء
+                    const hat = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+                    hat.position.y = 0.5; head.add(hat);
+                }
+                if(type === '1337') { // عيون حمراء
+                    const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,0.1), new THREE.MeshBasicMaterial({color: "red"}));
+                    eyeL.position.set(-0.2, 0, 0.5); head.add(eyeL);
+                    const eyeR = eyeL.clone(); eyeR.position.set(0.2, 0, 0.5); head.add(eyeR);
+                }
+
+                group.position.set(x, 0, z);
+                scene.add(group);
+                return group;
+            }
+
+            // شخصيتك (سوبرمان)
+            const player = createHero(0x0000ff, 'superman', 0, 0);
+            
+            // الشخصيات الوهمية (NPCs)
+            createHero(0xff0000, 'mario', -10, -10); // ماريو
+            createHero(0x222222, '1337', 10, -10);  // Guest 1337
+            createHero(0xff69b4, 'girl', 0, -15);   // فتاة أنمي
+
+            // --- بناء المدينة ---
+            function build(x, z, color) {
+                const b = new THREE.Mesh(new THREE.BoxGeometry(15, 15, 15), new THREE.MeshBasicMaterial({ color: color }));
                 b.position.set(x, 7.5, z);
                 scene.add(b);
+                // شبابيك
+                const win = new THREE.Mesh(new THREE.PlaneGeometry(10, 4), new THREE.MeshBasicMaterial({color: 0x87CEEB}));
+                win.position.set(0, 3, 7.6); b.add(win);
             }
-            createBuild(-50, -50, 0xffffff); // مدرسة
-            createBuild(50, -50, 0xffd700);  // بيتزا
-            createBuild(-50, 50, 0xff4500);  // مسرح
-            createBuild(50, 50, 0x00bfff);   // العاب
-
-            // --- شخصية سوبرمان (Chibi) ---
-            const player = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.6, 1, 4, 8), new THREE.MeshBasicMaterial({color: "blue"}));
-            body.position.y = 1;
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), new THREE.MeshBasicMaterial({color: 0xffdbac}));
-            head.position.y = 2.2;
-            const cape = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.8), new THREE.MeshBasicMaterial({color: "red", side: THREE.DoubleSide}));
-            cape.position.set(0, 1.5, -0.6); cape.rotation.x = 0.2;
-            player.add(body, head, cape);
-            scene.add(player);
+            build(-50, -50, 0xffffff); // مدرسة
+            build(50, -50, 0xffd700);  // بيتزا
+            build(-50, 50, 0xff4500);  // مسرح
+            build(50, 50, 0x00bfff);   // ألعاب
 
             camera.position.set(0, 15, 30);
             camera.lookAt(0, 0, 0);
 
-            // --- التحكم الذكي ---
-            let move = { x: 0, z: 0 };
-            let touchStart = { x: 0, y: 0 };
-            let camRotY = 0;
-            let vY = 0;
-
+            // --- تحكم ببجي 360 ---
+            let move = { x: 0, z: 0 }; let touchStart = { x: 0, y: 0 }; let camRotY = 0; let vY = 0;
+            
             window.addEventListener("touchstart", e => {
-                touchStart.x = e.touches[0].clientX;
-                touchStart.y = e.touches[0].clientY;
+                touchStart.x = e.touches[0].clientX; touchStart.y = e.touches[0].clientY;
             });
-
+            
             window.addEventListener("touchmove", e => {
                 const t = e.touches[0];
-                if(t.clientX < window.innerWidth/2) {
-                    move.x = (t.clientX - touchStart.x) * 0.02;
-                    move.z = (t.clientY - touchStart.y) * 0.02;
-                } else {
+                if(t.clientX < window.innerWidth/2) { // يسار: مشي
+                    move.x = (t.clientX - touchStart.x) * 0.01;
+                    move.z = (t.clientY - touchStart.y) * 0.01;
+                } else { // يمين: تدوير كاميرا
                     camRotY -= (t.clientX - touchStart.x) * 0.005;
                     touchStart.x = t.clientX;
                 }
+                e.preventDefault();
             }, {passive: false});
 
             window.addEventListener("touchend", () => move = { x: 0, z: 0 });
-            
-            document.getElementById("jump-btn").addEventListener("touchstart", () => {
-                if(player.position.y < 0.1) vY = 0.4;
-            });
+            document.getElementById("jump-btn").onclick = () => { if(player.position.y < 0.1) vY = 0.35; };
 
             function animate() {
                 requestAnimationFrame(animate);
                 
-                // حركة اللاعب بالنسبة للكاميرا
+                // حركة اللاعب
                 player.position.x += (move.x * Math.cos(camRotY) + move.z * Math.sin(camRotY)) * 0.3;
                 player.position.z += (move.z * Math.cos(camRotY) - move.x * Math.sin(camRotY)) * 0.3;
                 
-                player.position.y += vY; vY -= 0.02;
+                player.position.y += vY; vY -= 0.015;
                 if(player.position.y < 0) { player.position.y = 0; vY = 0; }
 
+                // تدوير الشخصية باتجاه المشي
+                if(Math.abs(move.x) > 0.01) player.rotation.y = Math.atan2(move.x, move.z) + camRotY;
+
                 // الكاميرا تتبع 360
-                camera.position.set(
-                    player.position.x + Math.sin(camRotY) * 25,
-                    player.position.y + 15,
-                    player.position.z + Math.cos(camRotY) * 25
-                );
+                camera.position.set(player.position.x + Math.sin(camRotY)*25, player.position.y + 15, player.position.z + Math.cos(camRotY)*25);
                 camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
                 
                 renderer.render(scene, camera);
