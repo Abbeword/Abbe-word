@@ -3,475 +3,742 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ABBE WORLD: ANIME CITY 🌍</title>
+    <title>مدينة الأنمي السعيدة 🌟</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #87CEEB; touch-action: none; -webkit-user-select: none; font-family: 'Comic Sans MS', cursive, sans-serif; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #a0d8ef; display: flex; align-items: center; justify-content: center; z-index: 10000; flex-direction: column; }
-        #btn-start { padding: 25px 50px; background: #FF4500; border: 5px solid white; border-radius: 50px; font-size: 22px; font-weight: bold; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer; }
-        #overlay h1 { color: white; text-shadow: 0 0 20px #ff0066; }
-        .controls { position: absolute; bottom: 40px; right: 20px; display: none; flex-direction: column; gap: 15px; z-index: 100; pointer-events: auto; }
-        .btn-game { width: 75px; height: 75px; background: rgba(255,255,255,0.4); border: 3px solid white; border-radius: 50%; color: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; backdrop-filter: blur(5px); cursor: pointer; transition: 0.2s; }
-        .btn-game:active { transform: scale(0.9); background: rgba(255,255,255,0.8); }
-        #ui-header { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-weight: bold; text-shadow: 2px 2px 5px #f00; pointer-events: none; z-index: 50; display: none; font-size: 24px; }
-        #slowmo-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #ffcc00; padding: 8px 20px; border-radius: 30px; font-size: 18px; display: none; z-index: 60; border: 2px solid #ffcc00; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #87CEEB; font-family: 'Comic Sans MS', cursive, sans-serif; touch-action: none; }
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; text-align: center; padding: 20px;
+        }
+        #overlay h1 { color: #ff3b6f; font-size: 3rem; text-shadow: 0 4px 20px rgba(255,0,100,0.3); margin-bottom: 10px; }
+        #overlay p { color: #555; font-size: 1.2rem; max-width: 400px; margin-bottom: 25px; }
+        #btn-start {
+            padding: 18px 50px; background: #ff6b9d; border: none; border-radius: 50px;
+            font-size: 24px; font-weight: bold; color: white; cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255,100,150,0.4); transition: 0.3s;
+        }
+        #btn-start:hover { transform: scale(1.05); background: #ff3b7f; }
+        #ui-header {
+            position: absolute; top: 15px; width: 100%; text-align: center;
+            color: white; font-size: 26px; font-weight: bold; z-index: 100;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.5); pointer-events: none;
+            display: none; letter-spacing: 2px;
+        }
+        #slowmo-indicator {
+            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.65); color: #ffdd44; padding: 8px 25px;
+            border-radius: 30px; font-size: 18px; display: none; z-index: 110;
+            border: 2px solid #ffdd44; backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
+        .controls {
+            position: absolute; bottom: 30px; right: 20px;
+            display: none; flex-direction: column; gap: 14px; z-index: 200;
+            pointer-events: auto;
+        }
+        .btn-game {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: rgba(255,255,255,0.3); backdrop-filter: blur(8px);
+            border: 3px solid rgba(255,255,255,0.8);
+            color: #222; font-weight: bold; font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center; line-height: 1.2;
+        }
+        .btn-game:active { transform: scale(0.88); background: rgba(255,255,255,0.6); }
+        .btn-game span { display: block; font-size: 20px; }
+        @media (max-width: 600px) {
+            #overlay h1 { font-size: 2rem; }
+            #btn-start { font-size: 18px; padding: 14px 30px; }
+            #ui-header { font-size: 18px; top: 10px; }
+            .btn-game { width: 60px; height: 60px; font-size: 11px; }
+        }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1>✨ ABBE WORLD ✨</h1>
-        <button id="btn-start" onclick="startApp()">🚀 ابدأ المغامرة</button>
-        <p style="color:white; margin-top:20px;">(اسحب يسار/يمين للتحكم، اضغط زر الرقص للحركة البطيئة)</p>
+        <h1>🌈 مدينة الأنمي</h1>
+        <p>مغامرة كرتونية مليئة بالأصدقاء!<br>ماريو، سوبرمان، باتمان، سونيك وأميرات لطيفات</p>
+        <button id="btn-start" onclick="startGame()">🚀 ابدأ المغامرة</button>
     </div>
 
-    <div id="ui-header">مدينة ABBE الأسطورية 🏰</div>
-    <div id="slowmo-indicator">🐢 حركة بطيئة فعالة</div>
+    <div id="ui-header">🌟 مدينة الأحلام 🌟</div>
+    <div id="slowmo-indicator">✨ حركة بطيئة ✨</div>
 
     <div class="controls" id="game-ui">
-        <div class="btn-game" id="jump-btn">قفز 🦘</div>
-        <div class="btn-game" id="dance-btn">رقص 💃</div>
+        <div class="btn-game" id="jump-btn"><span>🦘</span> قفز</div>
+        <div class="btn-game" id="dance-btn"><span>💃</span> رقص</div>
+        <div class="btn-game" id="switch-btn"><span>🔄</span> تبديل</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        function startApp() {
-            document.getElementById("overlay").style.display = "none";
-            document.getElementById("game-ui").style.display = "flex";
-            document.getElementById("ui-header").style.display = "block";
+        // ============================================================
+        //  إطلاق اللعبة
+        // ============================================================
+        function startGame() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'flex';
+            document.getElementById('ui-header').style.display = 'block';
             initGame();
         }
 
+        // ============================================================
+        //  اللعبة الرئيسية
+        // ============================================================
         function initGame() {
-            // ---------- الإعدادات الأساسية ----------
+            // ---- المشهد والكاميرا ----
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x87CEEB);
-            
-            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            scene.fog = new THREE.Fog(0x87CEEB, 120, 250);
+
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
             document.body.appendChild(renderer.domElement);
 
-            // ---------- الإضاءة ----------
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            // ---- إضاءة أنمي زاهية ----
+            const ambient = new THREE.AmbientLight(0xffffff, 0.55);
             scene.add(ambient);
-            
-            const sun = new THREE.DirectionalLight(0xfff5d1, 0.9);
-            sun.position.set(30, 50, 30);
+
+            const sun = new THREE.DirectionalLight(0xffeedd, 1.0);
+            sun.position.set(40, 60, 30);
             sun.castShadow = true;
-            sun.shadow.mapSize.width = 1024;
-            sun.shadow.mapSize.height = 1024;
-            sun.shadow.camera.near = 0.1;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.near = 0.5;
             sun.shadow.camera.far = 200;
             sun.shadow.camera.left = -80;
             sun.shadow.camera.right = 80;
             sun.shadow.camera.top = 80;
             sun.shadow.camera.bottom = -80;
             scene.add(sun);
-            
-            const backLight = new THREE.DirectionalLight(0x88ccff, 0.3);
-            backLight.position.set(-30, 20, -30);
-            scene.add(backLight);
 
-            // ---------- الخريطة ----------
-            const radius = 120;
-            const floor = new THREE.Mesh(
-                new THREE.CircleGeometry(radius, 64),
-                new THREE.MeshStandardMaterial({ color: 0x7cfc00, roughness: 0.8, metalness: 0.1 })
+            const fill = new THREE.DirectionalLight(0x88ccff, 0.35);
+            fill.position.set(-30, 20, -40);
+            scene.add(fill);
+
+            const rim = new THREE.DirectionalLight(0xffaa88, 0.25);
+            rim.position.set(-20, 30, 50);
+            scene.add(rim);
+
+            // ---- الأرض ----
+            const RADIUS = 110;
+            const ground = new THREE.Mesh(
+                new THREE.CircleGeometry(RADIUS, 64),
+                new THREE.MeshStandardMaterial({ color: 0x7cc46c, roughness: 0.7, metalness: 0.0 })
             );
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
 
-            // الطريق الدائري
-            const roadGeo = new THREE.TorusGeometry(radius - 10, 3, 8, 100);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.7 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
+            // ---- الطريق الدائري الرئيسي ----
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 });
+            const road = new THREE.Mesh(new THREE.TorusGeometry(RADIUS - 8, 3.5, 8, 120), roadMat);
             road.rotation.x = Math.PI / 2;
             road.receiveShadow = true;
             scene.add(road);
 
-            // خطوط الطريق (علامات)
-            for (let i = 0; i < 20; i++) {
-                const ang = (i / 20) * Math.PI * 2;
-                const x = Math.cos(ang) * (radius - 10);
-                const z = Math.sin(ang) * (radius - 10);
-                const marker = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.8, 0.1, 2),
-                    new THREE.MeshBasicMaterial({ color: 0xffffff })
-                );
-                marker.position.set(x, 0.2, z);
-                marker.rotation.y = -ang;
-                scene.add(marker);
+            // علامات الطريق
+            for (let i = 0; i < 30; i++) {
+                const a = (i / 30) * Math.PI * 2;
+                const x = Math.cos(a) * (RADIUS - 8);
+                const z = Math.sin(a) * (RADIUS - 8);
+                const m = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 1.8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                m.position.set(x, 0.25, z);
+                m.rotation.y = -a;
+                scene.add(m);
             }
 
-            // ---------- المباني ----------
-            const buildingColors = [0xffaa00, 0x44aaff, 0xff6b6b, 0x6bff6b, 0xff66b2, 0xffcc00];
-            const buildingNames = ['مدرسة 🏫', 'بيتزا 🍕', 'مسرح 🎭', 'ألعاب 🎮', 'مثلجات 🍦', 'كوديز 🍭'];
-            
-            buildingColors.forEach((color, i) => {
-                const ang = (i / buildingColors.length) * Math.PI * 2;
-                const x = Math.cos(ang) * (radius - 25);
-                const z = Math.sin(ang) * (radius - 25);
-                
+            // ---- المباني مع شبابيك وأبواب وتسميات ----
+            const buildings = [
+                { name: '🏫 مدرسة', color: 0xffbb77, h: 18 },
+                { name: '🍕 بيتزا', color: 0xff8844, h: 14 },
+                { name: '🎭 مسرح', color: 0xcc5555, h: 16 },
+                { name: '🎮 صالة ألعاب', color: 0x44aaff, h: 15 },
+                { name: '🍦 مثلجات', color: 0xff99cc, h: 12 },
+                { name: '🍭 كوديز', color: 0x88dd88, h: 13 }
+            ];
+
+            const bPositions = [];
+            buildings.forEach((b, i) => {
+                const angle = (i / buildings.length) * Math.PI * 2;
+                const dist = RADIUS - 28;
+                const x = Math.cos(angle) * dist;
+                const z = Math.sin(angle) * dist;
+                bPositions.push({ x, z, angle });
+
                 const group = new THREE.Group();
-                const height = 12 + Math.random() * 8;
+
+                // الجسم
+                const w = 8, d = 8;
                 const body = new THREE.Mesh(
-                    new THREE.BoxGeometry(10, height, 10),
-                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.1 })
+                    new THREE.BoxGeometry(w, b.h, d),
+                    new THREE.MeshStandardMaterial({ color: b.color, roughness: 0.3, metalness: 0.05 })
                 );
-                body.position.y = height / 2;
+                body.position.y = b.h / 2;
                 body.castShadow = true;
                 body.receiveShadow = true;
                 group.add(body);
 
-                // شبابيك
+                // شبابيك (واجهة)
                 const winMat = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
                 for (let row = 0; row < 4; row++) {
                     for (let col = -2; col <= 2; col++) {
-                        const w = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.8), winMat);
-                        w.position.set(col * 1.8, 2.5 + row * 2.5, 5.05);
-                        body.add(w);
+                        const wx = col * 1.6;
+                        const wy = 2.2 + row * 2.8;
+                        if (Math.abs(wx) < 0.8 && wy < 4) continue; // باب
+                        const win = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.6), winMat);
+                        win.position.set(wx, wy, d / 2 + 0.05);
+                        body.add(win);
+                        // إطار
+                        const frame = new THREE.Mesh(
+                            new THREE.EdgesGeometry(new THREE.PlaneGeometry(1.0, 1.6)),
+                            new THREE.LineBasicMaterial({ color: 0x333333 })
+                        );
+                        frame.position.copy(win.position);
+                        body.add(frame);
                     }
                 }
 
+                // باب
+                const doorMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+                const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.2), doorMat);
+                door.position.set(0, 1.3, d / 2 + 0.05);
+                body.add(door);
+                // مقبض
+                const handle = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 6), new THREE.MeshBasicMaterial({ color: 0xffaa00 }));
+                handle.position.set(0.4, 1.5, d / 2 + 0.3);
+                body.add(handle);
+
                 // سقف
-                const roof = new THREE.Mesh(
-                    new THREE.ConeGeometry(7, 3, 4),
-                    new THREE.MeshStandardMaterial({ color: 0xcc5555 })
-                );
-                roof.position.y = height + 1.5;
+                const roofMat = new THREE.MeshStandardMaterial({ color: 0xcc4444, roughness: 0.6 });
+                const roof = new THREE.Mesh(new THREE.ConeGeometry(w * 0.7, 3, 4), roofMat);
+                roof.position.y = b.h + 1.5;
                 roof.rotation.y = Math.PI / 4;
                 group.add(roof);
 
+                // تسمية (سبرايت)
+                const canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 80;
+                const ctx = canvas.getContext('2d');
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                ctx.roundRect(10, 10, 236, 60, 20);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#222';
+                ctx.font = 'bold 32px "Comic Sans MS", cursive';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(b.name, 128, 48);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(7, 2.2, 1);
+                sprite.position.set(0, b.h + 3.5, 0);
+                group.add(sprite);
+
                 group.position.set(x, 0, z);
-                group.lookAt(0, height/2, 0);
+                group.lookAt(0, b.h / 2, 0);
                 scene.add(group);
             });
 
-            // ---------- الأشجار ----------
-            for (let i = 0; i < 40; i++) {
-                const ang = Math.random() * Math.PI * 2;
-                const dist = 20 + Math.random() * 30;
-                const x = Math.cos(ang) * dist;
-                const z = Math.sin(ang) * dist;
-                
-                const trunk = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.4, 0.6, 4),
-                    new THREE.MeshStandardMaterial({ color: 0x8B4513 })
-                );
-                trunk.position.set(x, 2, z);
-                trunk.castShadow = true;
-                trunk.receiveShadow = true;
-                scene.add(trunk);
+            // ---- الحديقة المركزية (وسط الدائرة) ----
+            const parkMat = new THREE.MeshStandardMaterial({ color: 0x6aaf5a, roughness: 0.8 });
+            const park = new THREE.Mesh(new THREE.CircleGeometry(22, 32), parkMat);
+            park.rotation.x = -Math.PI / 2;
+            park.position.y = 0.05;
+            park.receiveShadow = true;
+            scene.add(park);
 
-                const leaves = new THREE.Mesh(
-                    new THREE.SphereGeometry(2 + Math.random() * 1.5, 6, 6),
-                    new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.6 })
+            // أشجار الحديقة
+            for (let i = 0; i < 35; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = 4 + Math.random() * 16;
+                const x = Math.cos(a) * r;
+                const z = Math.sin(a) * r;
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.3, 0.5, 2.5),
+                    new THREE.MeshStandardMaterial({ color: 0x8B5A2B })
                 );
-                leaves.position.set(x, 4.5 + Math.random() * 1, z);
-                leaves.castShadow = true;
-                leaves.receiveShadow = true;
-                scene.add(leaves);
+                trunk.position.set(x, 1.25, z);
+                trunk.castShadow = true;
+                scene.add(trunk);
+                const crown = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.8 + Math.random() * 1.2, 6, 6),
+                    new THREE.MeshStandardMaterial({ color: 0x3a9d3a, roughness: 0.7 })
+                );
+                crown.position.set(x, 3.5 + Math.random() * 0.8, z);
+                crown.castShadow = true;
+                scene.add(crown);
             }
 
-            // ---------- القطار ----------
+            // طرقات من الحديقة إلى المباني (مسارات مرصوفة)
+            bPositions.forEach(pos => {
+                const pathMat = new THREE.MeshStandardMaterial({ color: 0xbbaa88, roughness: 0.9 });
+                const path = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 12), pathMat);
+                path.rotation.x = -Math.PI / 2;
+                const midX = pos.x * 0.35;
+                const midZ = pos.z * 0.35;
+                path.position.set(midX, 0.1, midZ);
+                path.lookAt(0, 0.1, 0);
+                scene.add(path);
+            });
+
+            // ---- شخصيات الأنمي ----
+            function makeAnimeCharacter(type) {
+                const g = new THREE.Group();
+
+                // لون البشرة
+                const skin = 0xffddbb;
+                const skinMat = new THREE.MeshStandardMaterial({ color: skin, roughness: 0.2 });
+
+                // الجسم
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3333, roughness: 0.3 });
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.3, 0.65), bodyMat);
+                body.position.y = 0.65;
+                body.castShadow = true;
+                g.add(body);
+
+                // الرأس
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), skinMat);
+                head.position.y = 1.65;
+                head.castShadow = true;
+                g.add(head);
+
+                // عيون أنمي كبيرة
+                const eyeWhite = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const pupil = new THREE.MeshBasicMaterial({ color: 0x222222 });
+                const eyePos = [
+                    [-0.22, 1.78, 0.50],
+                    [0.22, 1.78, 0.50]
+                ];
+                eyePos.forEach(p => {
+                    const e = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), eyeWhite);
+                    e.position.set(p[0], p[1], p[2]);
+                    g.add(e);
+                    const p1 = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), pupil);
+                    p1.position.set(p[0] + 0.06, p[1] - 0.02, p[2] + 0.08);
+                    g.add(p1);
+                    // بريق
+                    const spark = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                    spark.position.set(p[0] + 0.10, p[1] + 0.07, p[2] + 0.10);
+                    g.add(spark);
+                });
+
+                // فم مبتسم
+                const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.02, 6, 12), new THREE.MeshBasicMaterial({ color: 0xcc4444 }));
+                mouth.position.set(0, 1.55, 0.55);
+                mouth.rotation.x = 0.2;
+                mouth.rotation.z = 0.1;
+                g.add(mouth);
+
+                // إضافات حسب النوع
+                switch (type) {
+                    case 'mario':
+                        // قبعة حمراء
+                        const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.25, 8), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+                        hat.position.y = 1.95;
+                        g.add(hat);
+                        const brim = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.06, 6, 12), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+                        brim.position.y = 1.82;
+                        brim.rotation.x = Math.PI / 2;
+                        g.add(brim);
+                        // حرف M
+                        const m = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.05), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                        m.position.set(0, 1.95, 0.55);
+                        g.add(m);
+                        break;
+                    case 'superman':
+                        // عباءة حمراء
+                        const cape = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.05), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+                        cape.position.set(0, 0.8, -0.5);
+                        g.add(cape);
+                        // حرف S
+                        const s = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.05), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
+                        s.position.set(0, 0.85, 0.35);
+                        g.add(s);
+                        break;
+                    case 'batman':
+                        // أذنان
+                        const earMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                        for (let side = -1; side <= 1; side += 2) {
+                            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.35, 6), earMat);
+                            ear.position.set(side * 0.25, 2.0, 0.1);
+                            ear.rotation.x = -0.2;
+                            g.add(ear);
+                        }
+                        // قناع
+                        const mask = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.2, 0.1), new THREE.MeshBasicMaterial({ color: 0x222222 }));
+                        mask.position.set(0, 1.75, 0.52);
+                        g.add(mask);
+                        break;
+                    case 'sonic':
+                        // شعر أزرق مدبب
+                        const spikeMat = new THREE.MeshStandardMaterial({ color: 0x2266ff });
+                        for (let i = -2; i <= 2; i++) {
+                            const sp = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 4), spikeMat);
+                            sp.position.set(i * 0.15, 1.95 + Math.abs(i) * 0.08, 0.2);
+                            sp.rotation.x = 0.3;
+                            g.add(sp);
+                        }
+                        break;
+                    case 'princess':
+                        // فستان وردي
+                        const dress = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.5, 0.6, 8), new THREE.MeshStandardMaterial({ color: 0xff66aa }));
+                        dress.position.y = 0.3;
+                        g.add(dress);
+                        // تاج
+                        const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 0.15, 6), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
+                        crown.position.y = 1.95;
+                        g.add(crown);
+                        for (let i = 0; i < 6; i++) {
+                            const a = (i / 6) * Math.PI * 2;
+                            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.15, 4), new THREE.MeshBasicMaterial({ color: 0xffcc00 }));
+                            tip.position.set(Math.cos(a) * 0.35, 2.05, Math.sin(a) * 0.35);
+                            g.add(tip);
+                        }
+                        break;
+                }
+
+                return g;
+            }
+
+            // ---- إنشاء الشخصيات ----
+            const chars = [
+                { type: 'mario', color: 0xff3333, name: 'ماريو' },
+                { type: 'superman', color: 0x2255ff, name: 'سوبرمان' },
+                { type: 'batman', color: 0x333333, name: 'باتمان' },
+                { type: 'sonic', color: 0x2266ff, name: 'سونيك' },
+                { type: 'princess', color: 0xff66aa, name: 'أميرة' },
+                { type: 'princess', color: 0x66ccff, name: 'أميرة' }
+            ];
+
+            const characterList = [];
+            const charPositions = [
+                [0, 0],
+                [12, 12],
+                [-10, 15],
+                [18, -8],
+                [-15, -12],
+                [8, -18]
+            ];
+
+            chars.forEach((c, i) => {
+                const char = makeAnimeCharacter(c.type);
+                const pos = charPositions[i % charPositions.length];
+                char.position.set(pos[0], 0, pos[1]);
+                char.castShadow = true;
+                scene.add(char);
+                characterList.push({ group: char, type: c.type, name: c.name, basePos: pos });
+            });
+
+            // الشخصية الرئيسية (ماريو)
+            const player = characterList[0].group;
+            // نضعها في البداية في الحديقة
+            player.position.set(0, 0, 0);
+
+            // ---- القطار ----
             const trainGroup = new THREE.Group();
             const trainBody = new THREE.Mesh(
-                new THREE.BoxGeometry(4, 3, 8),
-                new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x440000 })
+                new THREE.BoxGeometry(4.5, 2.8, 8),
+                new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0x441111 })
             );
-            trainBody.position.y = 1.5;
+            trainBody.position.y = 1.4;
             trainBody.castShadow = true;
             trainGroup.add(trainBody);
-            
-            // عجلات القطار
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-            for (let side = -1; side <= 1; side+=2) {
-                const w = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.3, 8), wheelMat);
-                w.rotation.z = Math.PI/2;
-                w.position.set(side * 1.8, 0.3, 2.5);
-                trainGroup.add(w);
-                const w2 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.3, 8), wheelMat);
-                w2.rotation.z = Math.PI/2;
-                w2.position.set(side * 1.8, 0.3, -2.5);
-                trainGroup.add(w2);
+            // كابينة
+            const cab = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.0, 2.0), new THREE.MeshStandardMaterial({ color: 0xffcc44 }));
+            cab.position.set(0, 2.5, -3.0);
+            trainGroup.add(cab);
+            // عجلات
+            const wheelMat2 = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            for (let side = -1; side <= 1; side += 2) {
+                for (let pos = -2.5; pos <= 2.5; pos += 2.5) {
+                    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.25, 8), wheelMat2);
+                    w.rotation.z = Math.PI / 2;
+                    w.position.set(side * 1.8, 0.3, pos);
+                    trainGroup.add(w);
+                }
             }
-            
             scene.add(trainGroup);
             let trainAngle = 0;
 
-            // ---------- شخصية الأنمي المحسنة ----------
-            function createAnimeCharacter(color = 0xff3333) {
-                const group = new THREE.Group();
-
-                // الجسم
-                const body = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.2, 1.6, 0.8),
-                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 })
+            // ---- سيارات على الطريق ----
+            const cars = [];
+            const carColors = [0xff4444, 0x44ff44, 0x4444ff, 0xffff44, 0xff44ff];
+            for (let i = 0; i < 8; i++) {
+                const car = new THREE.Group();
+                const bodyCar = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.6, 0.6, 2.8),
+                    new THREE.MeshStandardMaterial({ color: carColors[i % carColors.length], roughness: 0.3 })
                 );
-                body.position.y = 0.8;
-                body.castShadow = true;
-                group.add(body);
-
-                // الرأس
-                const head = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.6, 16, 16),
-                    new THREE.MeshStandardMaterial({ color: 0xffddbb, roughness: 0.2 })
+                bodyCar.position.y = 0.3;
+                car.add(bodyCar);
+                const top = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.0, 0.4, 1.4),
+                    new THREE.MeshStandardMaterial({ color: 0x88ccff, roughness: 0.2 })
                 );
-                head.position.y = 1.8;
-                head.castShadow = true;
-                group.add(head);
-
-                // العيون (أنمي كبيرة)
-                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const pupilMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
-                for (let side = -1; side <= 1; side+=2) {
-                    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 12), eyeMat);
-                    eye.position.set(side * 0.25, 1.95, 0.55);
-                    group.add(eye);
-                    // بؤبؤ
-                    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), pupilMat);
-                    pupil.position.set(side * 0.30, 1.93, 0.65);
-                    group.add(pupil);
+                top.position.set(0, 0.7, -0.2);
+                car.add(top);
+                // عجلات
+                const wMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+                for (let s = -1; s <= 1; s += 2) {
+                    for (let p = -1; p <= 1; p += 2) {
+                        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 6), wMat);
+                        w.rotation.z = Math.PI / 2;
+                        w.position.set(s * 0.7, 0.1, p * 1.0);
+                        car.add(w);
+                    }
                 }
-
-                // الشعر (أسلوب أنمي - قبعة/شعر مدبب)
-                const hair = new THREE.Mesh(
-                    new THREE.ConeGeometry(0.7, 0.5, 8),
-                    new THREE.MeshStandardMaterial({ color: 0xcc8833 })
-                );
-                hair.position.y = 2.15;
-                hair.rotation.x = 0.1;
-                group.add(hair);
-                // خصلات
-                for (let i = 0; i < 3; i++) {
-                    const spike = new THREE.Mesh(
-                        new THREE.ConeGeometry(0.1, 0.4, 4),
-                        new THREE.MeshStandardMaterial({ color: 0xcc8833 })
-                    );
-                    spike.position.set(0.2 * (i-1), 2.3, 0.4 * (i-1) - 0.2);
-                    spike.rotation.x = 0.3;
-                    group.add(spike);
-                }
-
-                // وشاح (أنمي)
-                const scarf = new THREE.Mesh(
-                    new THREE.TorusGeometry(0.4, 0.08, 6, 12),
-                    new THREE.MeshStandardMaterial({ color: 0xff0066 })
-                );
-                scarf.position.set(0, 1.4, 0.2);
-                scarf.rotation.x = Math.PI/2;
-                scarf.scale.set(1, 1, 0.5);
-                group.add(scarf);
-
-                return group;
+                const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+                const dist = RADIUS - 8;
+                car.position.set(Math.cos(angle) * dist, 0.1, Math.sin(angle) * dist);
+                car.rotation.y = -angle + Math.PI / 2;
+                scene.add(car);
+                cars.push({
+                    group: car,
+                    angle: angle,
+                    speed: 0.3 + Math.random() * 0.4,
+                    dist: dist
+                });
             }
 
-            const myAvatar = createAnimeCharacter(0xff3333);
-            myAvatar.position.set(0, 0, 0);
-            scene.add(myAvatar);
-
-            // شخصية إضافية (زائر)
-            const npc = createAnimeCharacter(0x33aaff);
-            npc.position.set(15, 0, 15);
-            scene.add(npc);
-
-            // ---------- متغيرات الحركة والتباطؤ ----------
+            // ---- متغيرات التحكم ----
             let move = { x: 0, y: 0 };
             let camRotY = 0;
             let vY = 0;
             let isSlowMo = false;
             let slowMoTimer = 0;
-            const SLOW_MO_DURATION = 3.0; // ثواني
+            const SLOW_MO_DURATION = 2.5;
             let timeScale = 1.0;
-            
-            // متغيرات لتتبع اللمس
-            let touchStart = { x: 0, y: 0 };
-            let isTouching = false;
+            let currentCharIndex = 0;
 
-            // ---------- التحكم باللمس والماوس ----------
-            // للماوس (اختبار)
-            let mouseDown = false;
-            document.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    mouseDown = true;
-                    touchStart.x = e.clientX;
-                    touchStart.y = e.clientY;
-                }
-            });
-            document.addEventListener('mousemove', (e) => {
-                if (!mouseDown) return;
-                const dx = e.clientX - touchStart.x;
-                const dy = e.clientY - touchStart.y;
-                if (e.clientX < window.innerWidth / 2) {
-                    move.x = dx * 0.01;
-                    move.y = dy * 0.01;
+            // ---- أحداث اللمس والماوس ----
+            let isDragging = false;
+            let touchStart = { x: 0, y: 0 };
+
+            function handlePointerDown(x, y) {
+                isDragging = true;
+                touchStart.x = x;
+                touchStart.y = y;
+            }
+
+            function handlePointerMove(x, y) {
+                if (!isDragging) return;
+                const dx = x - touchStart.x;
+                const dy = y - touchStart.y;
+                if (x < window.innerWidth / 2) {
+                    move.x = dx * 0.008;
+                    move.y = dy * 0.008;
                 } else {
-                    camRotY -= dx * 0.005;
+                    camRotY -= dx * 0.004;
                 }
-                touchStart.x = e.clientX;
-                touchStart.y = e.clientY;
-            });
-            document.addEventListener('mouseup', () => {
-                mouseDown = false;
-                move.x = 0; move.y = 0;
-            });
+                touchStart.x = x;
+                touchStart.y = y;
+            }
+
+            function handlePointerUp() {
+                isDragging = false;
+                move.x = 0;
+                move.y = 0;
+            }
+
+            // الماوس
+            document.addEventListener('mousedown', e => handlePointerDown(e.clientX, e.clientY));
+            document.addEventListener('mousemove', e => handlePointerMove(e.clientX, e.clientY));
+            document.addEventListener('mouseup', handlePointerUp);
 
             // اللمس
-            window.addEventListener('touchstart', (e) => {
+            document.addEventListener('touchstart', e => {
                 if (e.touches.length === 1) {
-                    isTouching = true;
-                    touchStart.x = e.touches[0].clientX;
-                    touchStart.y = e.touches[0].clientY;
+                    handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
+            document.addEventListener('touchmove', e => {
                 e.preventDefault();
-                if (!isTouching || e.touches.length !== 1) return;
-                const t = e.touches[0];
-                const dx = t.clientX - touchStart.x;
-                const dy = t.clientY - touchStart.y;
-                if (t.clientX < window.innerWidth / 2) {
-                    move.x = dx * 0.01;
-                    move.y = dy * 0.01;
-                } else {
-                    camRotY -= dx * 0.005;
+                if (e.touches.length === 1) {
+                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
                 }
-                touchStart.x = t.clientX;
-                touchStart.y = t.clientY;
             }, { passive: false });
+            document.addEventListener('touchend', handlePointerUp, { passive: true });
 
-            window.addEventListener('touchend', () => {
-                isTouching = false;
-                move.x = 0; move.y = 0;
-            }, { passive: true });
-
-            // أزرار اللعبة
+            // ---- أزرار التحكم ----
             document.getElementById('jump-btn').addEventListener('click', () => {
-                if (myAvatar.position.y < 0.1) {
-                    vY = 0.35;
-                }
+                if (player.position.y < 0.1) vY = 0.35;
             });
 
             document.getElementById('dance-btn').addEventListener('click', () => {
-                // تفعيل الحركة البطيئة
                 if (!isSlowMo) {
                     isSlowMo = true;
                     slowMoTimer = SLOW_MO_DURATION;
                     timeScale = 0.2;
                     document.getElementById('slowmo-indicator').style.display = 'block';
-                    
-                    // تأثير زوم على الكاميرا (تقريب)
-                    // سيتم التعامل معه في animate
-                    // إضافة دوران سريع للشخصية (يتم في animate)
                 }
             });
 
-            // ---------- كاميرا وهمية للزوم ----------
-            let targetCamDist = 15;
-            let currentCamDist = 15;
+            document.getElementById('switch-btn').addEventListener('click', () => {
+                // تبديل الشخصية الرئيسية
+                currentCharIndex = (currentCharIndex + 1) % characterList.length;
+                const newChar = characterList[currentCharIndex].group;
+                // نقل موقع اللاعب إلى الشخصية الجديدة
+                player.position.copy(newChar.position);
+                // إخفاء الشخصية القديمة وإظهار الجديدة
+                characterList.forEach((c, idx) => {
+                    c.group.visible = (idx === currentCharIndex);
+                });
+                // تحديث مرجع اللاعب
+                // نحرك الكاميرا تلقائياً
+            });
 
-            // ---------- حلقة اللعبة ----------
-            let clock = new THREE.Clock();
+            // إظهار الشخصية الأولى فقط
+            characterList.forEach((c, idx) => {
+                c.group.visible = (idx === 0);
+            });
+
+            // ---- متغيرات الكاميرا ----
+            let targetDist = 14;
+            let currentDist = 14;
+            let targetHeight = 7;
+            let currentHeight = 7;
+
+            // ---- حلقة اللعبة ----
+            const clock = new THREE.Clock();
 
             function animate() {
                 const delta = clock.getDelta();
-                // تطبيق timeScale على delta
                 const dt = delta * timeScale;
 
                 requestAnimationFrame(animate);
 
-                // تحديث مؤقت الحركة البطيئة
+                // تحديث التباطؤ
                 if (isSlowMo) {
                     slowMoTimer -= dt;
                     if (slowMoTimer <= 0) {
                         isSlowMo = false;
                         timeScale = 1.0;
                         document.getElementById('slowmo-indicator').style.display = 'none';
-                        targetCamDist = 15;
+                        targetDist = 14;
+                        targetHeight = 7;
                     } else {
-                        // أثناء التباطؤ، نقرب الكاميرا
-                        targetCamDist = 5;
+                        targetDist = 5.5;
+                        targetHeight = 3.5;
                     }
                 } else {
-                    targetCamDist = 15;
+                    targetDist = 14;
+                    targetHeight = 7;
                 }
-                // تطبيق سلس للكاميرا
-                currentCamDist += (targetCamDist - currentCamDist) * 0.05;
+                currentDist += (targetDist - currentDist) * 0.06;
+                currentHeight += (targetHeight - currentHeight) * 0.06;
 
-                // ----- تحريك القطار -----
-                trainAngle += 0.005 * timeScale;
-                trainGroup.position.x = Math.cos(trainAngle) * (radius - 10);
-                trainGroup.position.z = Math.sin(trainAngle) * (radius - 10);
-                trainGroup.rotation.y = -trainAngle + Math.PI/2;
+                // ---- تحريك القطار ----
+                trainAngle += 0.006 * timeScale;
+                const td = RADIUS - 8;
+                trainGroup.position.x = Math.cos(trainAngle) * td;
+                trainGroup.position.z = Math.sin(trainAngle) * td;
+                trainGroup.rotation.y = -trainAngle + Math.PI / 2;
 
-                // ----- تحريك اللاعب -----
-                const speed = 0.25 * timeScale;
+                // ---- تحريك السيارات ----
+                cars.forEach(car => {
+                    car.angle += car.speed * 0.005 * timeScale;
+                    car.group.position.x = Math.cos(car.angle) * car.dist;
+                    car.group.position.z = Math.sin(car.angle) * car.dist;
+                    car.group.rotation.y = -car.angle + Math.PI / 2;
+                });
+
+                // ---- تحريك اللاعب ----
+                const speed = 0.22 * timeScale;
                 const forward = new THREE.Vector3(-Math.sin(camRotY), 0, -Math.cos(camRotY));
                 const right = new THREE.Vector3(Math.cos(camRotY), 0, -Math.sin(camRotY));
                 const moveVec = new THREE.Vector3(0, 0, 0);
-                moveVec.addScaledVector(forward, -move.y); // لاحظ الإشارة حسب تجربة
+                moveVec.addScaledVector(forward, -move.y);
                 moveVec.addScaledVector(right, move.x);
                 moveVec.y = 0;
-                moveVec.normalize().multiplyScalar(speed);
-                myAvatar.position.x += moveVec.x;
-                myAvatar.position.z += moveVec.z;
+                if (moveVec.length() > 0.01) {
+                    moveVec.normalize().multiplyScalar(speed);
+                } else {
+                    moveVec.set(0, 0, 0);
+                }
 
-                // الجاذبية والقفز
-                myAvatar.position.y += vY * dt * 30; // تعديل السرعة
+                player.position.x += moveVec.x;
+                player.position.z += moveVec.z;
+
+                // جاذبية وقفز
+                player.position.y += vY * dt * 30;
                 vY -= 0.4 * dt * 30;
-                if (myAvatar.position.y < 0) {
-                    myAvatar.position.y = 0;
+                if (player.position.y < 0) {
+                    player.position.y = 0;
                     vY = 0;
                 }
 
-                // دوران الشخصية باتجاه الحركة
+                // دوران باتجاه الحركة
                 if (moveVec.length() > 0.01) {
                     const targetAngle = Math.atan2(moveVec.x, moveVec.z);
-                    myAvatar.rotation.y += (targetAngle - myAvatar.rotation.y) * 0.1;
+                    player.rotation.y += (targetAngle - player.rotation.y) * 0.08;
                 }
 
-                // أثناء الحركة البطيئة: دوران إضافي للشخصية (رقص)
+                // حركة رقص أثناء التباطؤ
                 if (isSlowMo) {
-                    myAvatar.rotation.y += dt * 2.0;
-                    // اهتزاز خفيف
-                    myAvatar.position.y += Math.sin(Date.now() * 0.01) * 0.002;
+                    player.rotation.y += dt * 1.5;
+                    player.position.y += Math.sin(Date.now() * 0.012) * 0.003;
                 }
 
-                // تحريك الـ NPC بشكل عشوائي
-                npc.position.x += Math.sin(Date.now() * 0.001) * 0.01 * timeScale;
-                npc.position.z += Math.cos(Date.now() * 0.0013) * 0.01 * timeScale;
-                npc.rotation.y += 0.01 * timeScale;
-
-                // ----- الكاميرا -----
-                const camHeight = isSlowMo ? 3 : 8;
+                // ---- الكاميرا ----
                 const camOffset = new THREE.Vector3(
-                    Math.sin(camRotY) * currentCamDist,
-                    camHeight,
-                    Math.cos(camRotY) * currentCamDist
+                    Math.sin(camRotY) * currentDist,
+                    currentHeight,
+                    Math.cos(camRotY) * currentDist
                 );
-                camera.position.copy(myAvatar.position).add(camOffset);
-                camera.lookAt(myAvatar.position.x, myAvatar.position.y + 1.5, myAvatar.position.z);
+                camera.position.copy(player.position).add(camOffset);
+                camera.lookAt(player.position.x, player.position.y + 1.6, player.position.z);
 
-                // إضاءة متحركة
-                sun.position.x = 50 * Math.sin(Date.now() * 0.0001);
-                sun.position.z = 50 * Math.cos(Date.now() * 0.0001);
+                // ---- إضاءة متحركة (تأثير أنمي) ----
+                sun.position.x = 45 * Math.sin(Date.now() * 0.00008);
+                sun.position.z = 45 * Math.cos(Date.now() * 0.00008);
 
                 renderer.render(scene, camera);
             }
+
             animate();
 
-            // ضبط حجم النافذة
+            // ---- تعديل حجم النافذة ----
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
+
+            // دالة roundRect للـ canvas
+            if (!CanvasRenderingContext2D.prototype.roundRect) {
+                CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                    if (r > w / 2) r = w / 2;
+                    if (r > h / 2) r = h / 2;
+                    this.moveTo(x + r, y);
+                    this.lineTo(x + w - r, y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r);
+                    this.lineTo(x + w, y + h - r);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    this.lineTo(x + r, y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r);
+                    this.lineTo(x, y + r);
+                    this.quadraticCurveTo(x, y, x + r, y);
+                    return this;
+                };
+            }
         }
     </script>
 </body>
